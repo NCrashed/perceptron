@@ -1,0 +1,17 @@
+{
+	"recogintionFolder": "data/recognition",
+	"recognitionSamples": [],
+	"logFile": "perceptron.log",
+	"learnFolder": "data/learn",
+	"saveInput": true,
+	"learnSamples": [
+	   {
+	       "path": "a",
+	       "symbol": "A"
+	   },
+	   {
+	       "path": "b",
+	       "symbol": "B"
+	   }
+	]
+}
