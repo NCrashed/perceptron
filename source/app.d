@@ -31,8 +31,8 @@ args: --learning    - defines learning mode for neural network
 
 void main(string[] args)
 {
-    bool learning = false;
-    bool recognition = true;
+    bool learning = true;
+    bool recognition = false;
     bool help = false;
     bool genconfig = false;
     string configPath = "config.json";
@@ -76,6 +76,13 @@ void main(string[] args)
     
     logger.logInfo("Start initialization is finished");
     
-    debugSaveInput("source.png", "dist.png");
-    writeln(parseInput("source.png"));
+    if(learning)
+    {
+        logger.logInfo("Application operates in learning mode");
+        auto inputSet = InputSet(logger, config.learnFolder, config.learnSamples, config.saveInput);
+    }
+    else
+    {
+        logger.logInfo("Application operates in recognition mode");
+    } 
 }

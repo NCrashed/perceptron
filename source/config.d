@@ -23,6 +23,7 @@ struct Config
     string logFile = "perceptron.log";
     string learnFolder = "data/learn";
     string recogintionFolder = "data/recognition";
+    bool   saveInput = false;
     
     struct Sample
     {

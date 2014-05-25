@@ -16,11 +16,85 @@ import ae.utils.graphics.view;
 import ae.utils.graphics.sdlimage;
 import ae.utils.graphics.image;
 import ae.utils.graphics.color;
+import dlogg.log;
+import std.algorithm;
+import std.container;
+import std.file;
+import std.path;
 import util;
+import config;
 
 enum INPUT_SIZE_X = 5;
 enum INPUT_SIZE_Y = 7;
 enum INPUT_SIZE = INPUT_SIZE_X * INPUT_SIZE_Y;
+
+struct InputSet
+{   
+    static struct Sample
+    {
+        DList!(ubyte[INPUT_SIZE]) learnSet;
+        DList!(ubyte[INPUT_SIZE]) checkSet;
+        dchar answer;
+    }
+    
+    DList!Sample samples;
+    
+    this(shared ILogger logger, string baseFolder, const Config.Sample[] inputs, bool saveDebugInput = false)
+    {
+        ubyte[INPUT_SIZE] readPng(string filename)
+        {
+            if(filename.extension == ".png")
+            {
+                if(saveDebugInput)
+                {
+                    string newName = buildPath(filename.dirName, baseName(stripExtension(filename)) ~ "_debug.png");
+                    debugSaveInput(filename, newName);
+                }
+                return parseInput(filename);
+            }
+            else
+            {
+                throw new Exception("Expected png file, but got "~filename.extension);
+            }
+        }
+        
+        foreach(ref input; inputs)
+        {
+            string inputPath = buildPath(baseFolder, input.path);
+            
+            if(inputPath.exists)
+            {
+                try
+                {
+                    Sample sample;
+                    if(inputPath.isDir)
+                    {
+                        auto pngFiles = filter!`endsWith(a.name,".png")`(dirEntries(inputPath, SpanMode.depth));
+                        foreach(png; pngFiles)
+                        {
+                            sample.learnSet.insert(readPng(png.name));
+                        }
+                    }
+                    else
+                    {
+                        sample.learnSet.insert(readPng(inputPath));
+                    }
+                    assert(input.symbol.length == 1, "Expected one symbol as answer!");
+                    sample.answer = input.symbol[0];
+                    samples.insert(sample);
+                }
+                catch(Exception e)
+                {
+                    logger.logError(text("Failed to load ", inputPath, ": ", e.msg));
+                }
+            }
+            else
+            {
+                logger.logWarning(text("Cannot find folder or image by path '", inputPath, "'"));
+            }
+        }
+    } 
+}
 
 ubyte[INPUT_SIZE] parseInput(string fileName)
 {
