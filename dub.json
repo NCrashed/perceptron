@@ -1,0 +1,8 @@
+{
+	"name" : "perceptron",
+	"description" : "Education task for images recognition by neural network",
+	"copyright": "Copyright © 2014, Anton Gushcha"
+	"license": "MPL-2.0",
+	"dependencies" : {
+	}
+}
