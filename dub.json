@@ -5,7 +5,9 @@
 	"authors": ["Anton Gushcha (NCrashed ncrashed@gmail.com)"
 	           ,"Vladimir Panteleev (CyberShadow vladimir@thecybershadow.net)"],
 	"license": "MPL-2.0",
+	"versions": ["VibeCustomMain"],
 	"dependencies" : {
-	   "derelict-sdl2": "~master"
+	   "derelict-sdl2": "~master",
+	   "vibe-d": "~master"
 	}
 }
