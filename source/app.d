@@ -14,6 +14,7 @@ module app;
 
 import std.stdio;
 import std.getopt;
+import std.conv;
 import dlogg.strict;
 import config;
 import input;
@@ -79,7 +80,7 @@ void main(string[] args)
     if(learning)
     {
         logger.logInfo("Application operates in learning mode");
-        auto inputSet = InputSet(logger, config.learnFolder, config.learnSamples, config.saveInput);
+        auto inputSet = InputSet(logger, config.learnFolder, config.learnSamples, config.controlPart.to!float, config.saveInput);
     }
     else
     {

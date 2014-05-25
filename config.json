@@ -3,7 +3,8 @@
 	"recognitionSamples": [],
 	"logFile": "perceptron.log",
 	"learnFolder": "data/learn",
-	"saveInput": true,
+	"saveInput": false,
+	"controlPart": "0.2",
 	"learnSamples": [
 	   {
 	       "path": "a",

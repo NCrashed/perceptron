@@ -20,6 +20,7 @@ import dlogg.log;
 import std.algorithm;
 import std.container;
 import std.file;
+import std.range;
 import std.path;
 import util;
 import config;
@@ -39,7 +40,7 @@ struct InputSet
     
     DList!Sample samples;
     
-    this(shared ILogger logger, string baseFolder, const Config.Sample[] inputs, bool saveDebugInput = false)
+    this(shared ILogger logger, string baseFolder, const Config.Sample[] inputs, float controlPart, bool saveDebugInput = false)
     {
         ubyte[INPUT_SIZE] readPng(string filename)
         {
@@ -70,9 +71,20 @@ struct InputSet
                     if(inputPath.isDir)
                     {
                         auto pngFiles = filter!`endsWith(a.name,".png")`(dirEntries(inputPath, SpanMode.depth));
+                        size_t length = pngFiles.walkLength;
+                        size_t learnCount = cast(size_t)(length * controlPart);
+                        
+                        size_t i;
                         foreach(png; pngFiles)
                         {
-                            sample.learnSet.insert(readPng(png.name));
+                            if(i++ > learnCount)
+                            {
+                                sample.checkSet.insert(readPng(png.name));
+                            }
+                            else
+                            {
+                                sample.learnSet.insert(readPng(png.name));
+                            }
                         }
                     }
                     else

@@ -24,6 +24,7 @@ struct Config
     string learnFolder = "data/learn";
     string recogintionFolder = "data/recognition";
     bool   saveInput = false;
+    string controlPart = "0.2";
     
     struct Sample
     {
