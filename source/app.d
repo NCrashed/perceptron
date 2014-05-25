@@ -16,6 +16,7 @@ import std.stdio;
 import std.getopt;
 import dlogg.strict;
 import config;
+import input;
 
 enum helpMsg = 
 "perceptron [args]
@@ -73,5 +74,8 @@ void main(string[] args)
     // Loading logger
     shared ILogger logger = new shared StrictLogger(config.logFile);
     
-    logger.logInfo("Start initilization is finished");
+    logger.logInfo("Start initialization is finished");
+    
+    debugSaveInput("source.png", "dist.png");
+    writeln(parseInput("source.png"));
 }
