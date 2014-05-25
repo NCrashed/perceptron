@@ -8,6 +8,7 @@
 	"versions": ["VibeCustomMain"],
 	"dependencies" : {
 	   "derelict-sdl2": "~master",
-	   "vibe-d": "~master"
+	   "vibe-d": "~master",
+	   "dlogg": "~master"
 	}
 }

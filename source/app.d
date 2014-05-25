@@ -14,6 +14,8 @@ module app;
 
 import std.stdio;
 import std.getopt;
+import dlogg.strict;
+import config;
 
 enum helpMsg = 
 "perceptron [args]
@@ -22,6 +24,8 @@ args: --learning    - defines learning mode for neural network
       --recognition - defines recognition mode for neural networ.
                       default flag.
       --config=path - configuration file, default is 'config.json'.
+      --genconfig   - if set, new config file is generated in 
+                      --config location + .example extention.
 ";
 
 void main(string[] args)
@@ -29,6 +33,7 @@ void main(string[] args)
     bool learning = false;
     bool recognition = true;
     bool help = false;
+    bool genconfig = false;
     string configPath = "config.json";
     
     {
@@ -42,7 +47,8 @@ void main(string[] args)
             "learning", &learning,
             "recoginition", &recognition,
             "config", &configPath,
-            "help", &help
+            "help", &help,
+            "genconfig", &genconfig
         );
         
         assert(learning != recognition, "Cannot use learning and recognition at the same time!");
@@ -54,5 +60,18 @@ void main(string[] args)
         }
     }
     
+    // If user wants to generate config
+    if(genconfig)
+    {
+        saveConifg(Config(), configPath~".example");
+        return;
+    }
+        
+    // Parsing config
+    auto config = loadConfig(configPath);
     
+    // Loading logger
+    shared ILogger logger = new shared StrictLogger(config.logFile);
+    
+    logger.logInfo("Start initilization is finished");
 }
