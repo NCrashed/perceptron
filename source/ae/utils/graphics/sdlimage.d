@@ -16,16 +16,16 @@ module ae.utils.graphics.sdlimage;
 import ae.utils.graphics.color;
 import ae.utils.graphics.image;
 
-import derelict.sdl.sdl;
-import derelict.sdl.image;
+import derelict.sdl2.sdl;
+import derelict.sdl2.image;
 
 import std.exception;
 import std.string : toStringz, format;
 
 static this()
 {
-	DerelictSDL.load();
-	DerelictSDLImage.load();
+	DerelictSDL2.load();
+	DerelictSDL2Image.load();
 
 	IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
 }

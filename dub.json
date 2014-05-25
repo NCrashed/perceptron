@@ -6,5 +6,6 @@
 	           ,"Vladimir Panteleev (CyberShadow vladimir@thecybershadow.net)"],
 	"license": "MPL-2.0",
 	"dependencies" : {
+	   "derelict-sdl2": "~master"
 	}
 }
