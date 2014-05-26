@@ -84,20 +84,23 @@ void main(string[] args)
         logger.logInfo("Application operates in learning mode");
         auto inputSet = InputSet(logger, config.learnFolder, config.learnSamples, config.controlPart.to!float, config.saveInput);
         
-        writeln("Readed samples: ", inputSet.samples[].walkLength);
+        logger.logInfo(text("Readed samples: ", inputSet.samples[].walkLength));
         size_t i;
         foreach(ref sample; inputSet.samples)
         {
-            writeln("Sample ", i++);
-            writeln("learning set: ", sample.learnSet[]);
-            writeln("control set: ", sample.checkSet[]);
-            writeln("symbol: ", sample.answer);
+            logger.logInfo(text("Sample ", i++));
+            logger.logInfo(text("learning set length: ", sample.learnSet[].walkLength));
+            logger.logInfo(text("control set length: ", sample.checkSet[].walkLength));
+            logger.logInfo(text("symbol: ", sample.answer));
         } 
         
-        alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, INPUT_SIZE*2, 4);
+        alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, 2*INPUT_SIZE, 4);
         TestNet testNet;
         testNet.randomInit;
         
+        writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
+        testNet.save("testNet.json");
+        testNet = TestNet.load("testNet.json");
         writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
     }
     else
