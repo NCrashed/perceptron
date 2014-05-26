@@ -15,9 +15,11 @@ module app;
 import std.stdio;
 import std.getopt;
 import std.conv;
+import std.range;
 import dlogg.strict;
 import config;
 import input;
+import neural;
 
 enum helpMsg = 
 "perceptron [args]
@@ -81,6 +83,22 @@ void main(string[] args)
     {
         logger.logInfo("Application operates in learning mode");
         auto inputSet = InputSet(logger, config.learnFolder, config.learnSamples, config.controlPart.to!float, config.saveInput);
+        
+        writeln("Readed samples: ", inputSet.samples[].walkLength);
+        size_t i;
+        foreach(ref sample; inputSet.samples)
+        {
+            writeln("Sample ", i++);
+            writeln("learning set: ", sample.learnSet[]);
+            writeln("control set: ", sample.checkSet[]);
+            writeln("symbol: ", sample.answer);
+        } 
+        
+        alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, INPUT_SIZE*2, 2);
+        TestNet testNet;
+        testNet.randomInit;
+        
+        writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
     }
     else
     {

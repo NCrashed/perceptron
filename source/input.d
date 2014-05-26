@@ -68,16 +68,20 @@ struct InputSet
                 try
                 {
                     Sample sample;
+                    
                     if(inputPath.isDir)
                     {
-                        auto pngFiles = filter!`endsWith(a.name,".png")`(dirEntries(inputPath, SpanMode.depth));
+                        auto getPngFiles() { return filter!`endsWith(a.name,".png")`(dirEntries(inputPath, SpanMode.depth)); }
+                        
+                        auto pngFiles = getPngFiles;
                         size_t length = pngFiles.walkLength;
                         size_t learnCount = cast(size_t)(length * controlPart);
                         
+                        pngFiles = getPngFiles;
                         size_t i;
                         foreach(png; pngFiles)
                         {
-                            if(i++ > learnCount)
+                            if(i++ < learnCount)
                             {
                                 sample.checkSet.insert(readPng(png.name));
                             }
