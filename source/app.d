@@ -92,6 +92,7 @@ void main(string[] args)
             logger.logInfo(text("learning set length: ", sample.learnSet[].walkLength));
             logger.logInfo(text("control set length: ", sample.checkSet[].walkLength));
             logger.logInfo(text("symbol: ", sample.answer));
+            logger.logInfo(text("answer vector: ", sample.answerVector));
         } 
         
         alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, 2*INPUT_SIZE, 4);

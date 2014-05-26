@@ -36,6 +36,7 @@ struct InputSet
         DList!(ubyte[INPUT_SIZE]) learnSet;
         DList!(ubyte[INPUT_SIZE]) checkSet;
         dchar answer;
+        float[] answerVector;
     }
     
     DList!Sample samples;
@@ -109,7 +110,26 @@ struct InputSet
                 logger.logWarning(text("Cannot find folder or image by path '", inputPath, "'"));
             }
         }
+        
+        recalcIdealOutputs();
     } 
+    
+    void recalcIdealOutputs()
+    {
+        DList!Sample newSamples;
+        size_t length = samples[].walkLength;
+        size_t i;
+        foreach(sample; samples[])
+        {
+            auto vec = new float[length];
+            vec[] = 0.0;
+            vec[i++] = 1.0;
+            sample.answerVector = vec;
+            newSamples.insert(sample); 
+        }
+        
+        samples = newSamples;
+    }
 }
 
 ubyte[INPUT_SIZE] parseInput(string fileName)
