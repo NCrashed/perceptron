@@ -94,7 +94,7 @@ void main(string[] args)
             writeln("symbol: ", sample.answer);
         } 
         
-        alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, INPUT_SIZE*2, 3);
+        alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, INPUT_SIZE*2, 4);
         TestNet testNet;
         testNet.randomInit;
         

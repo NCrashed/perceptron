@@ -17,6 +17,10 @@
        {
            "path": "c",
            "symbol": "C"
+       },
+       {
+           "path": "d",
+           "symbol": "D"
        }
 	]
 }
