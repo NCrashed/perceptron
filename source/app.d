@@ -104,7 +104,7 @@ void main(string[] args)
         testNet = TestNet.load("testNet.json");
         writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
         
-        testNet.learn(inputSet, 0.5, 0.5, 1);
+        testNet.learn(inputSet, 0.4, 0.2, 1);
         writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
     }
     else

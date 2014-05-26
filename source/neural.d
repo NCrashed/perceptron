@@ -33,7 +33,7 @@ struct Neuron(size_t inputLength)
     {
         foreach(ref val; weights)
         {
-            val = uniform!"[]"(-5.0, 5.0);
+            val = uniform!"[]"(-0.1, 0.1);
         }
     }
     
@@ -49,7 +49,7 @@ struct Neuron(size_t inputLength)
     
     private float activationFunc(float val)
     {
-        return cast(float)(val / (abs(val) + 1));
+        return cast(float)(1.0 / (exp(-val) + 1.0));
     }
     
     Json toJson() const
@@ -226,7 +226,7 @@ struct Perceptron(size_t inputLength, TS...)
         return inputs;
     }
     
-    float[output] calculate(ubyte[input] rawInputs)
+    float[output] calculate()(auto ref ubyte[input] rawInputs)
     {
         auto inputs = transformInput(rawInputs);
         
@@ -249,6 +249,20 @@ struct Perceptron(size_t inputLength, TS...)
         }
         
         mixin(genBody());
+    }
+    
+    double error()(auto ref ubyte[input] rawInputs, auto ref float[output] answerVector)
+    {
+        auto outputs = calculate(rawInputs);
+        
+        double summ = 0.0;
+        foreach(i; 0 .. output)
+        {
+            double diff = outputs[i] - answerVector[i];
+            summ += diff*diff;
+        }
+        
+        return summ * 0.5;
     }
     
     Json toJson() const
@@ -320,12 +334,18 @@ struct Perceptron(size_t inputLength, TS...)
             mixin(layer(j)).clenupLearning();   
         }
         
+        double totalErrorOld = 0.0; 
+        double totalErrorNew = 0.0;
+        size_t sampleTotal = 0;
+        
         foreach(d; 0 .. stepsCount)
         { 
             foreach(ref sample; inputSet.samples[])
             {
                 foreach(ref rawInputs; sample.learnSet[])
                 { 
+                    double wasError = error(rawInputs, sample.answerVector[0 .. output]);
+                    totalErrorOld += wasError; sampleTotal++;
                     auto inputs = transformInput(rawInputs);
                     
                     // Calculating outputs in all neurons
@@ -363,9 +383,17 @@ struct Perceptron(size_t inputLength, TS...)
                         //pragma(msg, l);
                         mixin(layer(l)).applyDeltas(mixin(layer(l-1)).outputs, learnSpeed, inertiaFactor);
                     }
+                    
+                    double nowError = error(rawInputs, sample.answerVector[0 .. output]);
+                    totalErrorNew += nowError;
+                    std.stdio.writeln("Error: ", wasError, " -> ", nowError);
                 }
             }
         }
+        
+        totalErrorNew /= sampleTotal;
+        totalErrorOld /= sampleTotal;
+        std.stdio.writeln("Total error: ", totalErrorOld, " -> ", totalErrorNew);
     }
 }
 
