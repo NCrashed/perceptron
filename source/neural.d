@@ -20,6 +20,8 @@ import std.path;
 import std.file;
 import std.range;
 import std.stdio;
+import std.container;
+import input;
 
 struct Neuron(size_t inputLength)
 {
@@ -63,20 +65,33 @@ struct Neuron(size_t inputLength)
         ret.weights = deserializeJson!(float[])(src.weights);
         return ret;
     }
+    
+    private @ignore
+    {
+        float[inputLength] dw;
+        
+        void cleanupDeltas()
+        {
+            dw[] = 0.0;
+        }
+    }
 }
 
 struct Layer(size_t inputLength, size_t neuronCount)
 {
-    Neuron!inputLength[neuronCount] neurons;
+    // neuronCount
+    Array!(Neuron!inputLength) neurons;
     
     enum output = neuronCount;
     enum input  = inputLength;
     
     void randomInit()
     {
-        foreach(ref neuron; neurons)
+        foreach(i; 0 .. neuronCount)
         {
+            auto neuron = Neuron!inputLength();
             neuron.randomInit();
+            neurons.insert(neuron);
         }
     }
     
@@ -84,9 +99,10 @@ struct Layer(size_t inputLength, size_t neuronCount)
     {
         float[output] buff;
         
-        foreach(i, ref val; buff)
+        size_t i;
+        foreach(ref neuron; neurons[])
         {
-            val = neurons[i].calculate(inputs);
+            buff[i++] = neuron.calculate(inputs);
         }
         
         return buff;
@@ -95,7 +111,7 @@ struct Layer(size_t inputLength, size_t neuronCount)
     Json toJson() const
     {
         Json[string] ret;
-        ret["neurons"] = serializeToJson(neurons);
+        ret["neurons"] = serializeToJson((cast()neurons)[].array);
         return Json(ret);
     }
     
@@ -103,9 +119,83 @@ struct Layer(size_t inputLength, size_t neuronCount)
     {
         typeof(this) ret;
         
-        ret.neurons = deserializeJson!(Neuron!inputLength[])(src.neurons);
-        
+        auto jsonArr = src.neurons.get!(Json[]);
+        foreach(json; jsonArr)
+        {
+            ret.neurons.insert(deserializeJson!(Neuron!inputLength)(json));
+        }
+                
         return ret;
+    }
+    
+    // learning staff
+    private @ignore
+    {
+        float[output] outputs;
+        float[output] deltas;
+        
+        void clenupLearning()
+        {
+            Array!(Neuron!inputLength) newNeurons;
+            foreach(neuron; neurons[])
+            {
+                neuron.cleanupDeltas();
+                newNeurons.insert(neuron);
+            }
+            neurons = newNeurons;
+            
+            outputs[] = 0.0;
+            deltas[] = 0.0;
+        }
+        
+        void calcOutputs()(auto ref float[input] inputs)
+        {
+            outputs = calculate(inputs);
+        }
+        
+        void calcDeltasEnd(float[output] t)
+        {
+            foreach(k, ref dk; deltas)
+            {
+                // dk = ok*(1 - ok)*(tk - ok)
+                dk = outputs[k]*(1 - outputs[k])*(t[k] - outputs[k]);
+            }
+        }
+        
+        void calcDeltas(NextLayer)(ref NextLayer nextLayer)
+        {
+            static assert(output == nextLayer.input);
+            
+            foreach(j, ref dj; deltas)
+            {
+                // dj = oj*(1 - oj)* summ!(k in children(j))(dk * w[j][k])
+                double summ = 0.0;
+                foreach(k; 0 .. nextLayer.output)
+                {
+                    // dk * w[j][k]
+                    summ += nextLayer.deltas[k] * nextLayer.neurons[k].weights[j];
+                }
+                dj = outputs[j]*(1 - outputs[j]) * summ;
+            }
+        }
+        
+        void applyDeltas()(auto ref float[input] inputs, double learningSpeed, double inertiaFactor)
+        {
+            Array!(Neuron!inputLength) newNeurons;
+            size_t j;
+            foreach(ref neuron; neurons[])
+            {
+                foreach(i; 0 .. input)
+                {
+                    neuron.dw[i] = inertiaFactor * neuron.dw[i] + (1 - inertiaFactor)*learningSpeed * deltas[j] * inputs[i];
+                    neuron.weights[i] = neuron.weights[i] + neuron.dw[i];
+                }
+                
+                newNeurons.insert(neuron);
+                j++;
+            }
+            neurons = newNeurons;
+        }
     }
 }
 
@@ -126,13 +216,19 @@ struct Perceptron(size_t inputLength, TS...)
         }
     }
     
-    float[output] calculate(ubyte[input] rawInputs)
+    float[input] transformInput()(auto ref ubyte[input] rawInputs)
     {
         float[input] inputs;
         foreach(i, ref input; inputs)
         {
             input = cast(float)rawInputs[i];
         }
+        return inputs;
+    }
+    
+    float[output] calculate(ubyte[input] rawInputs)
+    {
+        auto inputs = transformInput(rawInputs);
         
         string genBody()
         {
@@ -214,6 +310,62 @@ struct Perceptron(size_t inputLength, TS...)
     static typeof(this) load(string filename)
     {
         return deserializeJson!(typeof(this))(File(filename, "r").byLine.join.idup);
+    }
+    
+    void learn(InputSet inputSet, double learnSpeed, double inertiaFactor, size_t stepsCount)
+    {
+        // Clearing saved final deltas
+        foreach(j, _t; TS)
+        {
+            mixin(layer(j)).clenupLearning();   
+        }
+        
+        foreach(d; 0 .. stepsCount)
+        { 
+            foreach(ref sample; inputSet.samples[])
+            {
+                foreach(ref rawInputs; sample.learnSet[])
+                { 
+                    auto inputs = transformInput(rawInputs);
+                    
+                    // Calculating outputs in all neurons
+                    foreach(j, _t; TS)
+                    {
+                        static if(j == 0)
+                        {
+                            mixin(layer(j)).calcOutputs(inputs);
+                        }
+                        else
+                        {
+                            mixin(layer(j)).calcOutputs(mixin(layer(j-1)).outputs);
+                        }
+                    }
+                    
+                    // Calculate deltas at output layer
+                    assert(sample.answerVector.length == mixin(layer(layers-1)).output, "Answer vector and output of neural network doesn't match!");
+                    mixin(layer(layers-1)).calcDeltasEnd(sample.answerVector[0 .. mixin(layer(layers-1)).output]);
+                    
+                    // Calculate deltas at other layers
+                    foreach(_l, _t; TS[0 .. $-1]) // _l in [0 .. layers)
+                    {
+                        enum l = layers - 2 - _l; // l in [layers - 1 .. 0]
+                        //pragma(msg, l);
+                        mixin(layer(l)).calcDeltas(mixin(layer(l+1)));
+                    }
+                    
+                    // Apply deltas for first layer
+                    mixin(layer(0)).applyDeltas(inputs, learnSpeed, inertiaFactor);
+                    
+                    // Apply deltas for other layers
+                    foreach(_l, _t; TS[1 .. $])
+                    {
+                        enum l = _l + 1;
+                        //pragma(msg, l);
+                        mixin(layer(l)).applyDeltas(mixin(layer(l-1)).outputs, learnSpeed, inertiaFactor);
+                    }
+                }
+            }
+        }
     }
 }
 
