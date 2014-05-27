@@ -25,6 +25,7 @@ struct Config
     string recogintionFolder = "data/recognition";
     bool   saveInput = false;
     string controlPart = "0.2";
+    string networkFile = "network.json";
     
     struct Sample
     {

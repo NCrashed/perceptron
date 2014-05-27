@@ -130,6 +130,19 @@ struct InputSet
         
         samples = newSamples;
     }
+    
+    dchar[INPUT_SIZE] symbolsMap()
+    {
+    	dchar[INPUT_SIZE] buff;
+    	
+    	size_t i; 
+    	foreach(ref sample; samples[])
+    	{
+    		buff[i++] = sample.answer;
+    	}
+    	
+    	return buff;
+    }
 }
 
 ubyte[INPUT_SIZE] parseInput(string fileName)

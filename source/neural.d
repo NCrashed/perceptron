@@ -265,6 +265,53 @@ struct Perceptron(size_t inputLength, TS...)
         return summ * 0.5;
     }
     
+    struct Answer
+    {
+    	dchar symbol;
+    	float assurance = 0.0f;
+    }
+    
+    Answer detectSymbol()(auto ref ubyte[input] rawInputs, auto ref dchar[input] symbolsMap)
+    {
+    	auto answer = calculate(rawInputs);
+    	//std.stdio.writeln(answer);
+    	
+    	size_t max;
+    	float maxVal = -float.max;
+    	foreach(i, val; answer)
+    	{
+    		if(val > maxVal)
+    		{
+    			max = i;
+    			maxVal = val;
+    		}
+    	}
+    	
+    	return Answer(symbolsMap[max], maxVal);
+    }
+    
+    double finalAccuracy()(auto ref InputSet inputSet)
+    {
+    	auto symbolMap = inputSet.symbolsMap;
+    	size_t totalChecks, correctChecks;
+    	foreach(ref sample; inputSet.samples[])
+    	{
+    		foreach(ref inputs; sample.learnSet[])
+    		{
+    			auto ans = detectSymbol(inputs, symbolMap); 
+    			//std.stdio.write(ans, " ?= ");
+    			//std.stdio.writeln(sample.answer);
+    			if(ans.symbol == sample.answer)
+    			{
+    				correctChecks++;
+    			} 
+    			totalChecks++;
+    		}
+    	}
+    	
+    	return correctChecks / cast(double)totalChecks; 
+    }
+    
     Json toJson() const
     {
         string genBody()
@@ -334,18 +381,26 @@ struct Perceptron(size_t inputLength, TS...)
             mixin(layer(j)).clenupLearning();   
         }
         
-        double totalErrorOld = 0.0; 
-        double totalErrorNew = 0.0;
-        size_t sampleTotal = 0;
-        
         foreach(d; 0 .. stepsCount)
-        { 
-            foreach(ref sample; inputSet.samples[])
+        {
+        	auto samples = inputSet.samples[].array;
+        	assert(samples.length == 4);
+        	
+        	auto subrange0 = zip(samples[0].learnSet[], repeat(samples[0]));
+        	auto subrange1 = zip(samples[1].learnSet[], repeat(samples[1]));
+        	auto subrange2 = zip(samples[2].learnSet[], repeat(samples[2]));
+        	auto subrange3 = zip(samples[3].learnSet[], repeat(samples[3]));
+        	auto range = roundRobin(subrange0, subrange1, subrange2, subrange3);
+        	
+            //foreach(ref sample; inputSet.samples[])
             {
-                foreach(ref rawInputs; sample.learnSet[])
+                //foreach(ref rawInputs; sample.learnSet[])
+                foreach(elem; range)
                 { 
+                	auto sample = elem[1];
+                	auto rawInputs = elem[0];
+                	//
                     double wasError = error(rawInputs, sample.answerVector[0 .. output]);
-                    totalErrorOld += wasError; sampleTotal++;
                     auto inputs = transformInput(rawInputs);
                     
                     // Calculating outputs in all neurons
@@ -385,15 +440,10 @@ struct Perceptron(size_t inputLength, TS...)
                     }
                     
                     double nowError = error(rawInputs, sample.answerVector[0 .. output]);
-                    totalErrorNew += nowError;
                     std.stdio.writeln("Error: ", wasError, " -> ", nowError);
                 }
             }
         }
-        
-        totalErrorNew /= sampleTotal;
-        totalErrorOld /= sampleTotal;
-        std.stdio.writeln("Total error: ", totalErrorOld, " -> ", totalErrorNew);
     }
 }
 

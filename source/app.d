@@ -99,13 +99,13 @@ void main(string[] args)
         TestNet testNet;
         testNet.randomInit;
         
-        writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
-        testNet.save("testNet.json");
-        testNet = TestNet.load("testNet.json");
-        writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
+        double oldAcc = testNet.finalAccuracy(inputSet);
+        logger.logInfo(text("Final accuracy before learning: ", oldAcc));
+        testNet.learn(inputSet, 0.8, 0.0, 40);
+        logger.logInfo(text("Final accuracy after learning: ", testNet.finalAccuracy(inputSet), " (was ", oldAcc, ")"));
         
-        testNet.learn(inputSet, 0.4, 0.2, 1);
-        writeln(testNet.calculate(inputSet.samples.front.learnSet.front));
+        logger.logInfo(text("Saving trained network to ", config.networkFile));
+        testNet.save(config.networkFile);
     }
     else
     {
