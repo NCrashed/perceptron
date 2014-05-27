@@ -26,6 +26,7 @@ import util;
 import config;
 
 enum INPUT_SIZE_X = 5;
+enum OUTPUT_SIZE  = 4;
 enum INPUT_SIZE_Y = 7;
 enum INPUT_SIZE = INPUT_SIZE_X * INPUT_SIZE_Y;
 
@@ -131,9 +132,11 @@ struct InputSet
         samples = newSamples;
     }
     
-    dchar[INPUT_SIZE] symbolsMap()
+    dchar[OUTPUT_SIZE] symbolsMap()
     {
-    	dchar[INPUT_SIZE] buff;
+    	dchar[OUTPUT_SIZE] buff;
+    	
+    	assert(samples[].walkLength == OUTPUT_SIZE);
     	
     	size_t i; 
     	foreach(ref sample; samples[])

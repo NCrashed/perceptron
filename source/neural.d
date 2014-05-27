@@ -271,7 +271,7 @@ struct Perceptron(size_t inputLength, TS...)
     	float assurance = 0.0f;
     }
     
-    Answer detectSymbol()(auto ref ubyte[input] rawInputs, auto ref dchar[input] symbolsMap)
+    Answer detectSymbol()(auto ref ubyte[input] rawInputs, auto ref dchar[output] symbolsMap)
     {
     	auto answer = calculate(rawInputs);
     	//std.stdio.writeln(answer);

@@ -12,6 +12,7 @@
  */
 module config;
 
+import std.conv;
 import std.stdio;
 import std.range;
 import std.path;
@@ -38,6 +39,19 @@ struct Config
     
     Sample[] learnSamples;
     Sample[] recognitionSamples;
+    
+    dchar[length] symbolMap(size_t length)()
+    {
+    	assert(learnSamples.length == length, text("Need symbol map length doesn't correspond with samples count! ", length, " != ", learnSamples.length ));
+    	dchar[length] buff;
+    	foreach(i, ref sample; learnSamples)
+    	{
+    		assert(sample.symbol.length != 0, "Empty string as symbol!");
+    		buff[i] = sample.symbol[0];
+    	}
+    	
+    	return buff;
+    }
 }
 
 Config loadConfig(string path)

@@ -16,6 +16,7 @@ import std.stdio;
 import std.getopt;
 import std.conv;
 import std.range;
+import std.math;
 import dlogg.strict;
 import config;
 import input;
@@ -30,6 +31,8 @@ args: --learning    - defines learning mode for neural network
       --config=path - configuration file, default is 'config.json'.
       --genconfig   - if set, new config file is generated in 
                       --config location + .example extention.
+      --input       - test input to feed trained network. Default
+                      is 'test.png'
 ";
 
 void main(string[] args)
@@ -39,6 +42,7 @@ void main(string[] args)
     bool help = false;
     bool genconfig = false;
     string configPath = "config.json";
+    string testInput = "test.png";
     
     {
         scope(failure)
@@ -52,8 +56,11 @@ void main(string[] args)
             "recoginition", &recognition,
             "config", &configPath,
             "help", &help,
-            "genconfig", &genconfig
+            "genconfig", &genconfig,
+            "input", &testInput
         );
+        
+        if(recognition) learning = false;
         
         assert(learning != recognition, "Cannot use learning and recognition at the same time!");
         
@@ -78,6 +85,8 @@ void main(string[] args)
     shared ILogger logger = new shared StrictLogger(config.logFile);
     
     logger.logInfo("Start initialization is finished");
+    enum OUTPUT_SIZE = 4;
+    alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, 2*INPUT_SIZE, OUTPUT_SIZE);
     
     if(learning)
     {
@@ -95,20 +104,44 @@ void main(string[] args)
             logger.logInfo(text("answer vector: ", sample.answerVector));
         } 
         
-        alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, 2*INPUT_SIZE, 4);
         TestNet testNet;
         testNet.randomInit;
+        //testNet.load(config.networkFile);
         
         double oldAcc = testNet.finalAccuracy(inputSet);
         logger.logInfo(text("Final accuracy before learning: ", oldAcc));
         testNet.learn(inputSet, config.trainingFactor.to!double, config.inertiaFactor.to!double, config.iteratesCount.to!size_t);
-        logger.logInfo(text("Final accuracy after learning: ", testNet.finalAccuracy(inputSet), " (was ", oldAcc, ")"));
+        
+        double finalAcc = testNet.finalAccuracy(inputSet);
+        logger.logInfo(text("Final accuracy after learning: ", finalAcc, " (was ", oldAcc, ")"));
         
         logger.logInfo(text("Saving trained network to ", config.networkFile));
         testNet.save(config.networkFile);
+        
+        // testing saving
+        TestNet testNet2;
+        testNet2.load(config.networkFile);
+        assert(testNet2.finalAccuracy(inputSet).approxEqual(finalAcc));
     }
     else
     {
         logger.logInfo("Application operates in recognition mode");
+        
+        logger.logInfo(text("Loading trained network from ", config.networkFile));
+        TestNet testNet;
+        testNet.load(config.networkFile);
+        
+        logger.logInfo(text("Loading test sample from ", testInput));
+        auto inputs = parseInput(testInput);
+        debugSaveInput(testInput, "debug.png");
+        
+        logger.logInfo("Loading symbol map from config");
+        auto symbolMap = config.symbolMap!OUTPUT_SIZE;
+        
+        logger.logInfo("Getting answer");
+        auto answer = testNet.detectSymbol(inputs, symbolMap);
+        
+        logger.logInfo(text("Answer is: ", answer.symbol));
+        logger.logInfo(text("Assurance is: ", answer.assurance));
     } 
 }
