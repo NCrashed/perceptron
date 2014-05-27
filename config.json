@@ -6,6 +6,9 @@
 	"saveInput": false,
 	"controlPart": "0.2",
 	"networkFile": "network.json",
+	"trainingFactor": "0.8",
+    "inertiaFactor": "0.0",
+    "iteratesCount": "50",
 	"learnSamples": [
 	   {
 	       "path": "a",

@@ -25,6 +25,9 @@ struct Config
     string recogintionFolder = "data/recognition";
     bool   saveInput = false;
     string controlPart = "0.2";
+    string trainingFactor = "0.8";
+    string inertiaFactor = "0.0";
+    string iteratesCount = "50";
     string networkFile = "network.json";
     
     struct Sample

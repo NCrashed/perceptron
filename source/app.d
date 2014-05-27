@@ -101,7 +101,7 @@ void main(string[] args)
         
         double oldAcc = testNet.finalAccuracy(inputSet);
         logger.logInfo(text("Final accuracy before learning: ", oldAcc));
-        testNet.learn(inputSet, 0.8, 0.0, 40);
+        testNet.learn(inputSet, config.trainingFactor.to!double, config.inertiaFactor.to!double, config.iteratesCount.to!size_t);
         logger.logInfo(text("Final accuracy after learning: ", testNet.finalAccuracy(inputSet), " (was ", oldAcc, ")"));
         
         logger.logInfo(text("Saving trained network to ", config.networkFile));
