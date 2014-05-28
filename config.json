@@ -85,6 +85,10 @@
        {
            "path": "s",
            "symbol": "S"
+       },
+       {
+           "path": "t",
+           "symbol": "T"
        }
 	]
 }
