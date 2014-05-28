@@ -73,6 +73,10 @@
        {
            "path": "p",
            "symbol": "P"
+       },
+       {
+           "path": "q",
+           "symbol": "Q"
        }
 	]
 }
