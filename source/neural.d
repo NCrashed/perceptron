@@ -415,7 +415,7 @@ struct Perceptron(size_t inputLength, TS...)
             	auto sample = elem[1];
             	auto rawInputs = elem[0];
             	//
-                double wasError = error(rawInputs, sample.answerVector[0 .. output]);
+                //double wasError = error(rawInputs, sample.answerVector[0 .. output]);
                 auto inputs = transformInput(rawInputs);
                 
                 // Calculating outputs in all neurons
@@ -454,9 +454,11 @@ struct Perceptron(size_t inputLength, TS...)
                     mixin(layer(l)).applyDeltas(mixin(layer(l-1)).outputs, learnSpeed, inertiaFactor);
                 }
                 
-                double nowError = error(rawInputs, sample.answerVector[0 .. output]);
-                std.stdio.writeln("Error: ", wasError, " -> ", nowError);
+                //double nowError = error(rawInputs, sample.answerVector[0 .. output]);
+                //std.stdio.writeln("Error: ", wasError, " -> ", nowError);
             }
+            
+            std.stdio.writeln("Pass ", d, ": ", finalAccuracy(inputSet));
         }
     }
 }
