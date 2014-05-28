@@ -44,16 +44,11 @@ void main(string[] args)
     string configPath = "config.json";
     string testInput = "test.png";
     
-    {
-        scope(failure)
-        {
-            writeln(helpMsg);
-            return;
-        }
-        
+    try
+    {   
         getopt(args,
             "learning", &learning,
-            "recoginition", &recognition,
+            "recognition", &recognition,
             "config", &configPath,
             "help", &help,
             "genconfig", &genconfig,
@@ -64,11 +59,17 @@ void main(string[] args)
         
         assert(learning != recognition, "Cannot use learning and recognition at the same time!");
         
-        if(help)
-        {
-            writeln(helpMsg);
-            return;
-        }
+    } catch(Exception e)
+    {
+	writeln(e.msg);
+	writeln(helpMsg);
+	return;
+    }
+    
+    if(help)
+    {
+        writeln(helpMsg);
+        return;
     }
     
     // If user wants to generate config
