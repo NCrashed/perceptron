@@ -109,6 +109,10 @@
        {
            "path": "y",
            "symbol": "Y"
+       },
+       {
+           "path": "z",
+           "symbol": "Z"
        }
 	]
 }
