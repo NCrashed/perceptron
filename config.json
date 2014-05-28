@@ -41,6 +41,10 @@
        {
            "path": "h",
            "symbol": "H"
+       },
+       {
+           "path": "i",
+           "symbol": "I"
        }
 	]
 }
