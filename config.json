@@ -97,6 +97,10 @@
        {
            "path": "v",
            "symbol": "V"
+       },
+       {
+           "path": "w",
+           "symbol": "W"
        }
 	]
 }
