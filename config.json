@@ -4,7 +4,7 @@
 	"logFile": "perceptron.log",
 	"learnFolder": "data/learn",
 	"saveInput": false,
-	"controlPart": "0.2",
+	"controlPart": "0.0",
 	"networkFile": "network.json",
 	"trainingFactor": "0.8",
     "inertiaFactor": "0.0",
