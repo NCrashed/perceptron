@@ -119,8 +119,7 @@ void main(string[] args)
         testNet.save(config.networkFile);
         
         // testing saving
-        TestNet testNet2;
-        testNet2.load(config.networkFile);
+        auto testNet2 = TestNet.load(config.networkFile);
         assert(testNet2.finalAccuracy(inputSet).approxEqual(finalAcc));
     }
     else
@@ -128,8 +127,7 @@ void main(string[] args)
         logger.logInfo("Application operates in recognition mode");
         
         logger.logInfo(text("Loading trained network from ", config.networkFile));
-        TestNet testNet;
-        testNet.load(config.networkFile);
+        auto testNet = TestNet.load(config.networkFile);
         
         logger.logInfo(text("Loading test sample from ", testInput));
         auto inputs = parseInput(testInput);
