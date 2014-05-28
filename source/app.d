@@ -85,7 +85,6 @@ void main(string[] args)
     shared ILogger logger = new shared StrictLogger(config.logFile);
     
     logger.logInfo("Start initialization is finished");
-    enum OUTPUT_SIZE = 4;
     alias TestNet = Perceptron!(INPUT_SIZE, INPUT_SIZE*INPUT_SIZE, 2*INPUT_SIZE, OUTPUT_SIZE);
     
     if(learning)

@@ -26,7 +26,7 @@ import util;
 import config;
 
 enum INPUT_SIZE_X = 5;
-enum OUTPUT_SIZE  = 4;
+enum OUTPUT_SIZE  = 26;
 enum INPUT_SIZE_Y = 7;
 enum INPUT_SIZE = INPUT_SIZE_X * INPUT_SIZE_Y;
 
