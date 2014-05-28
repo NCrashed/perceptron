@@ -384,64 +384,78 @@ struct Perceptron(size_t inputLength, TS...)
         foreach(d; 0 .. stepsCount)
         {
         	auto samples = inputSet.samples[].array;
-        	assert(samples.length == 4);
+        	assert(samples.length == OUTPUT_SIZE);
         	
-        	auto subrange0 = zip(samples[0].learnSet[], repeat(samples[0]));
-        	auto subrange1 = zip(samples[1].learnSet[], repeat(samples[1]));
-        	auto subrange2 = zip(samples[2].learnSet[], repeat(samples[2]));
-        	auto subrange3 = zip(samples[3].learnSet[], repeat(samples[3]));
-        	auto range = roundRobin(subrange0, subrange1, subrange2, subrange3);
+        	string genRobinRange(size_t count)
+        	{
+        		string ret;
+        		foreach(i; 0 .. count)
+        		{
+        			ret ~= text("auto subrange",i," = zip(samples[",i,"].learnSet[], repeat(samples[",i,"]));\n");
+        		}
+        		
+        		ret ~= "auto range = roundRobin(";
+        		foreach(i; 0 .. count)
+        		{
+        			ret ~= text("subrange",i);
+        			if(i != count-1)
+        			{
+        				ret ~= ",";
+        			}
+        		}
+        		ret ~= ");\n";
+        		
+        		return ret;
+        	}
+        	//pragma(msg, genRobinRange(OUTPUT_SIZE));
+        	mixin(genRobinRange(OUTPUT_SIZE));
         	
-            //foreach(ref sample; inputSet.samples[])
-            {
-                //foreach(ref rawInputs; sample.learnSet[])
-                foreach(elem; range)
-                { 
-                	auto sample = elem[1];
-                	auto rawInputs = elem[0];
-                	//
-                    double wasError = error(rawInputs, sample.answerVector[0 .. output]);
-                    auto inputs = transformInput(rawInputs);
-                    
-                    // Calculating outputs in all neurons
-                    foreach(j, _t; TS)
+            foreach(elem; range)
+            { 
+            	auto sample = elem[1];
+            	auto rawInputs = elem[0];
+            	//
+                double wasError = error(rawInputs, sample.answerVector[0 .. output]);
+                auto inputs = transformInput(rawInputs);
+                
+                // Calculating outputs in all neurons
+                foreach(j, _t; TS)
+                {
+                    static if(j == 0)
                     {
-                        static if(j == 0)
-                        {
-                            mixin(layer(j)).calcOutputs(inputs);
-                        }
-                        else
-                        {
-                            mixin(layer(j)).calcOutputs(mixin(layer(j-1)).outputs);
-                        }
+                        mixin(layer(j)).calcOutputs(inputs);
                     }
-                    
-                    // Calculate deltas at output layer
-                    assert(sample.answerVector.length == mixin(layer(layers-1)).output, "Answer vector and output of neural network doesn't match!");
-                    mixin(layer(layers-1)).calcDeltasEnd(sample.answerVector[0 .. mixin(layer(layers-1)).output]);
-                    
-                    // Calculate deltas at other layers
-                    foreach(_l, _t; TS[0 .. $-1]) // _l in [0 .. layers)
+                    else
                     {
-                        enum l = layers - 2 - _l; // l in [layers - 1 .. 0]
-                        //pragma(msg, l);
-                        mixin(layer(l)).calcDeltas(mixin(layer(l+1)));
+                        mixin(layer(j)).calcOutputs(mixin(layer(j-1)).outputs);
                     }
-                    
-                    // Apply deltas for first layer
-                    mixin(layer(0)).applyDeltas(inputs, learnSpeed, inertiaFactor);
-                    
-                    // Apply deltas for other layers
-                    foreach(_l, _t; TS[1 .. $])
-                    {
-                        enum l = _l + 1;
-                        //pragma(msg, l);
-                        mixin(layer(l)).applyDeltas(mixin(layer(l-1)).outputs, learnSpeed, inertiaFactor);
-                    }
-                    
-                    double nowError = error(rawInputs, sample.answerVector[0 .. output]);
-                    std.stdio.writeln("Error: ", wasError, " -> ", nowError);
                 }
+                
+                // Calculate deltas at output layer
+                assert(sample.answerVector.length == mixin(layer(layers-1)).output, "Answer vector and output of neural network doesn't match!");
+                mixin(layer(layers-1)).calcDeltasEnd(sample.answerVector[0 .. mixin(layer(layers-1)).output]);
+                
+                // Calculate deltas at other layers
+                foreach(_l, _t; TS[0 .. $-1]) // _l in [0 .. layers)
+                {
+                    enum l = layers - 2 - _l; // l in [layers - 1 .. 0]
+                    //pragma(msg, l);
+                    mixin(layer(l)).calcDeltas(mixin(layer(l+1)));
+                }
+                
+                // Apply deltas for first layer
+                mixin(layer(0)).applyDeltas(inputs, learnSpeed, inertiaFactor);
+                
+                // Apply deltas for other layers
+                foreach(_l, _t; TS[1 .. $])
+                {
+                    enum l = _l + 1;
+                    //pragma(msg, l);
+                    mixin(layer(l)).applyDeltas(mixin(layer(l-1)).outputs, learnSpeed, inertiaFactor);
+                }
+                
+                double nowError = error(rawInputs, sample.answerVector[0 .. output]);
+                std.stdio.writeln("Error: ", wasError, " -> ", nowError);
             }
         }
     }
